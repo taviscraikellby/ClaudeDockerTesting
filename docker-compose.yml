@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: mathdb
+      POSTGRES_USER: mathuser
+      POSTGRES_PASSWORD: mathpass
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mathuser -d mathdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ./app
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://mathuser:mathpass@db:5432/mathdb
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
